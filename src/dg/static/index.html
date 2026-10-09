@@ -1,0 +1,56 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>dg</title>
+  <link rel="stylesheet" href="style.css">
+  <script defer src="app.js"></script>
+  <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.14.9/dist/cdn.min.js"></script>
+</head>
+<body>
+  <div class="layout" x-data="app" x-init="loadSources()">
+    <aside class="sidebar">
+      <h1>dg</h1>
+      <button class="reindex" @click="reindex()" :disabled="reindexing" :aria-busy="reindexing">
+        <span x-text="reindexing ? 'Reindexing…' : '↻ Reindex documents'"></span>
+      </button>
+      <p class="status" :class="{ error: status.error }" x-show="status.text" x-text="status.text"></p>
+      <ul class="errors" x-show="failures.length">
+        <template x-for="f in failures" :key="f.source">
+          <li><strong x-text="f.source"></strong>: <span x-text="f.error"></span></li>
+        </template>
+      </ul>
+      <h2>Sources</h2>
+      <ul class="sources">
+        <template x-for="s in sources" :key="s"><li x-text="s"></li></template>
+        <li class="muted" x-show="!sources.length">No documents yet</li>
+      </ul>
+    </aside>
+
+    <main class="chat">
+      <div class="messages" x-ref="messages">
+        <template x-for="(m, i) in messages" :key="i">
+          <div class="message" :class="m.role">
+            <div class="content" x-text="m.content"></div>
+            <details x-show="m.sources?.length">
+              <summary x-text="`${m.sources?.length} sources`"></summary>
+              <template x-for="(s, j) in m.sources" :key="j">
+                <blockquote>
+                  <strong x-text="`[${j + 1}] ${s.source}${s.page != null ? ' p.' + (s.page + 1) : ''}`"></strong>
+                  <p x-text="s.text"></p>
+                </blockquote>
+              </template>
+            </details>
+          </div>
+        </template>
+      </div>
+
+      <form class="composer" @submit.prevent="ask()">
+        <input x-model="question" placeholder="Ask about your documents…" :disabled="loading" autofocus>
+        <button :disabled="loading || !question.trim()">Send</button>
+      </form>
+    </main>
+  </div>
+</body>
+</html>
