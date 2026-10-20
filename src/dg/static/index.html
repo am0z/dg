@@ -9,9 +9,12 @@
   <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.14.9/dist/cdn.min.js"></script>
 </head>
 <body>
-  <div class="layout" x-data="app" x-init="loadSources()">
+  <div class="layout" x-data="app">
     <aside class="sidebar">
-      <h1>dg</h1>
+      <div class="brand">
+        <h1>dg</h1>
+        <button class="new-chat" @click="newChat()" :disabled="loading">+ New chat</button>
+      </div>
       <button class="reindex" @click="reindex()" :disabled="reindexing" :aria-busy="reindexing">
         <span x-text="reindexing ? 'Reindexing…' : '↻ Reindex documents'"></span>
       </button>
@@ -21,6 +24,15 @@
           <li><strong x-text="f.source"></strong>: <span x-text="f.error"></span></li>
         </template>
       </ul>
+      <h2>Remembered</h2>
+      <dl class="preferences">
+        <template x-for="[key, value] in Object.entries(preferences)" :key="key">
+          <div><dt x-text="key.replaceAll('_', ' ')"></dt><dd x-text="value"></dd></div>
+        </template>
+      </dl>
+      <p class="muted hint" x-show="!Object.keys(preferences).length">
+        Nothing yet. Try “answer in Spanish” or “keep it short”.
+      </p>
       <h2>Sources</h2>
       <ul class="sources">
         <template x-for="s in sources" :key="s"><li x-text="s"></li></template>
@@ -30,11 +42,12 @@
 
     <main class="chat">
       <div class="messages" x-ref="messages">
+        <p class="empty muted" x-show="!messages.length">Ask anything about your documents. This conversation is saved, so you can come back to it.</p>
         <template x-for="(m, i) in messages" :key="i">
           <div class="message" :class="m.role">
             <div class="content" x-text="m.content"></div>
             <details x-show="m.sources?.length">
-              <summary x-text="`${m.sources?.length} sources`"></summary>
+              <summary x-text="`${m.sources.length} source${m.sources.length === 1 ? '' : 's'}`"></summary>
               <template x-for="(s, j) in m.sources" :key="j">
                 <blockquote>
                   <strong x-text="`[${j + 1}] ${s.source}${s.page != null ? ' p.' + (s.page + 1) : ''}`"></strong>

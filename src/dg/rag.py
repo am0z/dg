@@ -1,15 +1,13 @@
-"""Retrieval-augmented generation: ingest documents, retrieve chunks, answer questions."""
+"""Document index: load and chunk files from DOCS_DIR, embed them, and search them."""
 
 import os
 import threading
-from collections.abc import Iterator
 from pathlib import Path
 
 from langchain_community.document_loaders import PyPDFLoader, TextLoader
 from langchain_core.documents import Document
-from langchain_core.prompts import ChatPromptTemplate
 from langchain_core.vectorstores import InMemoryVectorStore
-from langchain_openai import ChatOpenAI, OpenAIEmbeddings
+from langchain_openai import OpenAIEmbeddings
 from langchain_text_splitters import RecursiveCharacterTextSplitter
 
 DOCS_DIR = Path(os.getenv("DG_DOCS_DIR", "documents"))
@@ -25,17 +23,6 @@ LOADERS = {
     ".md": TextLoader,
 }
 
-PROMPT = ChatPromptTemplate.from_messages([
-    (
-        "system",
-        "Answer the question using only the context below. "
-        "If the context doesn't contain the answer, say you don't know. "
-        "Cite sources by their [number].\n\nContext:\n{context}",
-    ),
-    ("human", "{question}"),
-])
-
-
 def source_name(path: Path) -> str:
     """Name a file by its path relative to DOCS_DIR, or by its filename if outside it."""
     try:
@@ -47,7 +34,6 @@ def source_name(path: Path) -> str:
 class RAG:
     def __init__(self) -> None:
         self.embeddings = OpenAIEmbeddings(model=EMBED_MODEL)
-        self.llm = ChatOpenAI(model=CHAT_MODEL)
         self.splitter = RecursiveCharacterTextSplitter(chunk_size=1000, chunk_overlap=150)
         if INDEX_PATH.exists():
             self.store = InMemoryVectorStore.load(str(INDEX_PATH), self.embeddings)
@@ -94,10 +80,3 @@ class RAG:
 
     def retrieve(self, question: str) -> list[Document]:
         return self.store.similarity_search(question, k=TOP_K)
-
-    def stream_answer(self, question: str, docs: list[Document]) -> Iterator[str]:
-        context = "\n\n".join(f"[{i}] {d.page_content}" for i, d in enumerate(docs, 1))
-        chain = PROMPT | self.llm
-        for chunk in chain.stream({"context": context, "question": question}):
-            if chunk.content:
-                yield chunk.content

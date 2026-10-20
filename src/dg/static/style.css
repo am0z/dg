@@ -49,7 +49,20 @@ body {
   background: var(--surface);
   overflow-y: auto;
 }
-.sidebar h1 { margin: 0 0 1rem; font-size: 1.25rem; }
+.sidebar h1 { margin: 0; font-size: 1.25rem; }
+
+.brand { display: flex; align-items: center; justify-content: space-between; gap: 0.5rem; margin-bottom: 1rem; }
+.new-chat {
+  padding: 0.3rem 0.7rem;
+  font: inherit;
+  font-size: 0.85rem;
+  color: var(--accent-text);
+  background: var(--accent);
+  border: 0;
+  border-radius: var(--radius);
+  cursor: pointer;
+}
+.new-chat:disabled { opacity: 0.5; cursor: default; }
 .sidebar h2 { margin: 1.5rem 0 0.5rem; font-size: 0.8rem; text-transform: uppercase; color: var(--muted); }
 
 .reindex {
@@ -69,6 +82,14 @@ body {
 .status { margin: 0.5rem 0 0; font-size: 0.85rem; color: var(--muted); }
 .status.error { color: var(--danger); }
 .errors { margin: 0.25rem 0 0; padding-left: 1rem; font-size: 0.8rem; color: var(--danger); overflow-wrap: anywhere; }
+
+.preferences { margin: 0; font-size: 0.9rem; }
+.preferences div { display: flex; flex-wrap: wrap; column-gap: 0.4rem; padding: 0.2rem 0; }
+.preferences dt { color: var(--muted); white-space: nowrap; }
+.preferences dt::after { content: ":"; }
+.preferences dd { margin: 0; overflow-wrap: anywhere; }
+.hint { margin: 0; font-size: 0.85rem; }
+.empty { margin: auto; text-align: center; max-width: 40ch; }
 
 .sources { list-style: none; margin: 0; padding: 0; }
 .sources li { padding: 0.3rem 0; font-size: 0.9rem; overflow-wrap: anywhere; }
